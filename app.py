@@ -1,39 +1,43 @@
 import streamlit as st
 import requests
+import time
 
 st.set_page_config(page_title="IP-Impact Engine", page_icon="🔮")
 
 st.title("🔮 IP-Impact Engine")
-st.subheader("Free Open-Source Edition")
+st.subheader("Strategische Patent-Analyse")
 
-# Wir nutzen ein robustes Modell von Hugging Face
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+# Neues, stabileres Modell (Google Gemma)
+API_URL = "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it"
+headers = {"Authorization": "Bearer hf_VvSNoYmzXpXpXpXpXpXpXpXpXpXpXp"} # Nur ein Platzhalter
 
 def query(payload):
     response = requests.post(API_URL, json=payload)
     return response.json()
 
-claims_input = st.text_area("Patentansprüche hier einfügen:", height=200, placeholder="z.B. 1. Vorrichtung umfassend...")
+claims_input = st.text_area("Patentansprüche hier einfügen:", height=200)
 
-if st.button("Strategie-Analyse generieren"):
+if st.button("Analyse starten"):
     if claims_input:
-        with st.spinner('KI analysiert... bitte Geduld...'):
-            # Wir bauen einen klaren Prompt
-            prompt = f"<s>[INST] Analysiere diesen Patentanspruch auf Deutsch. Gib 3 Punkte aus: 1. Kern der Erfindung, 2. Wirtschaftlicher Vorteil, 3. Strategische Empfehlung. Patent: {claims_input} [/INST]"
+        with st.spinner('KI wird geweckt... bitte ggf. 2x klicken...'):
+            # Wir machen den Prompt noch klarer
+            prompt = f"User: Analysiere diesen Patentanspruch auf Deutsch. 1. Kern der Idee, 2. Vorteil, 3. Strategie. Anspruch: {claims_input}\nAssistant:"
             
-            output = query({
-                "inputs": prompt,
-                "parameters": {"max_new_tokens": 500, "return_full_text": False}
-            })
+            data = query({"inputs": prompt, "parameters": {"max_new_tokens": 500}})
             
-            if isinstance(output, list) and len(output) > 0:
-                result = output[0].get('generated_text', 'Keine Antwort erhalten.')
-                st.success("Analyse abgeschlossen!")
+            # Fehlerprüfung
+            if isinstance(data, dict) and "error" in data:
+                if "estimated_time" in data:
+                    st.info(f"Modell lädt noch... Bitte in {int(data['estimated_time'])} Sekunden nochmal klicken.")
+                else:
+                    st.error("Server antwortet nicht. Ich probiere ein Ersatz-Modell...")
+                    # Ersatz-Modell-URL falls Gemma hakt
+                    API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
+            elif isinstance(data, list) and len(data) > 0:
+                result = data[0].get('generated_text', '').split("Assistant:")[-1]
+                st.success("Analyse fertig!")
                 st.markdown(result)
             else:
-                st.error("Der KI-Server startet gerade neu. Bitte klicke in 30 Sekunden noch einmal auf den Button.")
+                st.warning("Kein Ergebnis. Bitte Button erneut drücken.")
     else:
-        st.warning("Bitte gib einen Text ein.")
-
-st.divider()
-st.info("Hinweis: Diese Version nutzt kostenlose Ressourcen. Bei Überlastung kann es zu Verzögerungen kommen.")
+        st.warning("Bitte Text eingeben.")
