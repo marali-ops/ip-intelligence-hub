@@ -22,7 +22,7 @@ if api_key:
                 prompt = f"Analysiere diese Patentansprüche und erstelle eine Business-Summary mit: 1. Kern (einfach), 2. Wettbewerbs-Vorteil, 3. Monopoly-Frage, 4. Sales-Pitch, 5. Risiko. Claims: {claims_input}"
                 
                 response = client.chat.completions.create(
-                    model="gpt-4o",
+                    model="gpt-4o-mini",
                     messages=[{"role": "user", "content": prompt}]
                 )
                 
