@@ -29,19 +29,20 @@ if user_password == st.secrets["APP_PASSWORD"]:
                 try:
                     # Der optimierte "Profi-Prompt"
                     response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {"role": "system", "content": "Du bist ein erfahrener Patentanwalt und Strategieberater für IP-Monopolisierung. Deine Sprache ist präzise, wirtschaftlich fokussiert und direkt."},
-                            {"role": "user", "content": f"""Analysiere diesen Patentanspruch extrem detailliert nach folgendem Schema:
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "Du bist ein erfahrener Patentanwalt und Strategieberater. Analysiere präzise auf Deutsch."},
+                        {"role": "user", "content": f"""Analysiere diesen Patentanspruch extrem detailliert nach folgendem Schema:
 
 1. **Der Kern der Erfindung**: Was ist der technische 'Clou' in einfachen Worten?
-2. **Wettbewerbsvorteil & Monopol-Potenzial**: Wie schwer ist es für die Konkurrenz, das zu umgehen (Work-around)? Erzeugt das ein echtes Markt-Monopol?
-3. **Der Sales Pitch**: Wie würde man diese Erfindung einem Investor oder Kunden in 2 Sätzen schmackhaft machen?
-4. **Risiko-Check**: Wo sind die Schwachstellen im Anspruch? Was könnte ein Wettbewerber nutzen, um das Patent anzugreifen?
+2. **Gibt es das schon? (Einschätzung der Neuheit)**: Basierend auf deinem Wissen, ist dies ein bekannter Standard oder eine echte Innovation? Welche ähnlichen Konzepte gibt es bereits?
+3. **Wettbewerbsvorteil & Monopol-Potenzial**: Wie schwer ist es für die Konkurrenz, das zu umgehen? Erzeugt das ein echtes Markt-Monopol?
+4. **Der Sales Pitch**: Wie würde man diese Erfindung einem Investor oder Kunden in 2 Sätzen schmackhaft machen?
+5. **Risiko-Check**: Wo sind die Schwachstellen im Anspruch? Was könnte ein Wettbewerber nutzen, um das Patent anzugreifen?
 
 Anspruch:\n\n{claims_input}"""}
-                        ]
-                    )
+                    ]
+                )
                     
                     # Ergebnis-Anzeige
                     st.success("Analyse abgeschlossen")
