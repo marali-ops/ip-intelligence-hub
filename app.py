@@ -1,43 +1,35 @@
 import streamlit as st
-import requests
-import time
+from openai import OpenAI
 
+# Seiteneinstellungen
 st.set_page_config(page_title="IP-Impact Engine", page_icon="🔮")
 
 st.title("🔮 IP-Impact Engine")
-st.subheader("Strategische Patent-Analyse")
+st.subheader("Patentansprüche in Business-Value übersetzen")
 
-# Neues, stabileres Modell (Google Gemma)
-API_URL = "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it"
-headers = {"Authorization": "Bearer hf_VvSNoYmzXpXpXpXpXpXpXpXpXpXpXp"} # Nur ein Platzhalter
+# API Key Eingabe (Sicherer Weg über Sidebar)
+api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 
-def query(payload):
-    response = requests.post(API_URL, json=payload)
-    return response.json()
+if api_key:
+    client = OpenAI(api_key=api_key)
+    
+    # Input Feld
+    claims_input = st.text_area("Kopiere hier die Patentansprüche (Claims) rein:", height=200)
 
-claims_input = st.text_area("Patentansprüche hier einfügen:", height=200)
-
-if st.button("Analyse starten"):
-    if claims_input:
-        with st.spinner('KI wird geweckt... bitte ggf. 2x klicken...'):
-            # Wir machen den Prompt noch klarer
-            prompt = f"User: Analysiere diesen Patentanspruch auf Deutsch. 1. Kern der Idee, 2. Vorteil, 3. Strategie. Anspruch: {claims_input}\nAssistant:"
-            
-            data = query({"inputs": prompt, "parameters": {"max_new_tokens": 500}})
-            
-            # Fehlerprüfung
-            if isinstance(data, dict) and "error" in data:
-                if "estimated_time" in data:
-                    st.info(f"Modell lädt noch... Bitte in {int(data['estimated_time'])} Sekunden nochmal klicken.")
-                else:
-                    st.error("Server antwortet nicht. Ich probiere ein Ersatz-Modell...")
-                    # Ersatz-Modell-URL falls Gemma hakt
-                    API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
-            elif isinstance(data, list) and len(data) > 0:
-                result = data[0].get('generated_text', '').split("Assistant:")[-1]
-                st.success("Analyse fertig!")
-                st.markdown(result)
-            else:
-                st.warning("Kein Ergebnis. Bitte Button erneut drücken.")
-    else:
-        st.warning("Bitte Text eingeben.")
+    if st.button("Strategie-Analyse generieren"):
+        if claims_input:
+            with st.spinner('Analysiere Patente...'):
+                prompt = f"Analysiere diese Patentansprüche und erstelle eine Business-Summary mit: 1. Kern (einfach), 2. Wettbewerbs-Vorteil, 3. Monopoly-Frage, 4. Sales-Pitch, 5. Risiko. Claims: {claims_input}"
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                
+                # Ergebnis anzeigen
+                st.success("Analyse abgeschlossen!")
+                st.markdown(response.choices[0].message.content)
+        else:
+            st.warning("Bitte gib zuerst Patentansprüche ein.")
+else:
+    st.info("Bitte gib deinen OpenAI API Key in der Sidebar ein, um zu starten.")
