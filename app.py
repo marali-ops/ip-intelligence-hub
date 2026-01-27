@@ -1,35 +1,46 @@
 import streamlit as st
 from openai import OpenAI
 
-# Seiteneinstellungen
-st.set_page_config(page_title="IP-Impact Engine", page_icon="🔮")
+# 1. Verbindung zu OpenAI (nutzt deinen Key aus den Secrets)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-st.title("🔮 IP-Impact Engine")
-st.subheader("Patentansprüche in Business-Value übersetzen")
+# 2. Layout der App
+st.set_page_config(page_title="IP-Intelligence Hub", page_icon="🔮")
 
-# API Key Eingabe (Sicherer Weg über Sidebar)
-api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+st.title("🔮 IP-Intelligence Hub")
+st.markdown("### Strategische Patent-Analyse via GPT-4o")
 
-if api_key:
-   client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    
-    # Input Feld
-    claims_input = st.text_area("Kopiere hier die Patentansprüche (Claims) rein:", height=200)
+# 3. Eingabefeld (Ganz links am Rand!)
+claims_input = st.text_area(
+    "Patentansprüche hier einfügen:", 
+    height=250, 
+    placeholder="1. Vorrichtung zur Datenverarbeitung, umfassend..."
+)
 
-    if st.button("Strategie-Analyse generieren"):
-        if claims_input:
-            with st.spinner('Analysiere Patente...'):
-                prompt = f"Analysiere diese Patentansprüche und erstelle eine Business-Summary mit: 1. Kern (einfach), 2. Wettbewerbs-Vorteil, 3. Monopoly-Frage, 4. Sales-Pitch, 5. Risiko. Claims: {claims_input}"
-                
+# 4. Analyse-Logik
+if st.button("Strategie-Analyse generieren"):
+    if claims_input:
+        with st.spinner('KI analysiert die Ansprüche... bitte warten.'):
+            try:
+                # Der "Prompt" – hier sagen wir der KI, wie sie arbeiten soll
                 response = client.chat.completions.create(
                     model="gpt-4o",
-                    messages=[{"role": "user", "content": prompt}]
+                    messages=[
+                        {"role": "system", "content": "Du bist ein erfahrener Patentanwalt und Strategieberater. Analysiere die Ansprüche präzise, strukturiert und professionell auf Deutsch."},
+                        {"role": "user", "content": f"Analysiere folgenden Patentanspruch:\n\n{claims_input}\n\nGib mir:\n1. Eine Zusammenfassung des Kerns der Erfindung.\n2. Die größten wirtschaftlichen Vorteile.\n3. Eine Einschätzung zur Durchsetzbarkeit (Infringement-Check Potential)."}
+                    ]
                 )
                 
-                # Ergebnis anzeigen
-                st.success("Analyse abgeschlossen!")
+                # Ergebnis ausgeben
+                st.success("Analyse abgeschlossen")
+                st.markdown("---")
                 st.markdown(response.choices[0].message.content)
-        else:
-            st.warning("Bitte gib zuerst Patentansprüche ein.")
-else:
-    st.info("Bitte gib deinen OpenAI API Key in der Sidebar ein, um zu starten.")
+                
+            except Exception as e:
+                st.error(f"Fehler: {e}")
+    else:
+        st.warning("Bitte füge zuerst Patentansprüche ein.")
+
+# 5. Disclaimer (Wichtig für die Außenwirkung)
+st.divider()
+st.caption("Hinweis: Dies ist ein KI-gestütztes Tool. Die Ergebnisse dienen der strategischen Orientierung und ersetzen keine Rechtsberatung durch einen zugelassenen Patentanwalt.")
