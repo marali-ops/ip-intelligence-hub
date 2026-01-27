@@ -11,7 +11,7 @@ st.subheader("Patentansprüche in Business-Value übersetzen")
 api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 
 if api_key:
-    client = OpenAI(api_key=api_key)
+   client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     
     # Input Feld
     claims_input = st.text_area("Kopiere hier die Patentansprüche (Claims) rein:", height=200)
